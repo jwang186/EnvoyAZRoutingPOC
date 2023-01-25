@@ -1,0 +1,83 @@
+static_resources:
+  clusters:
+    - name: demo_server
+      lb_policy: ROUND_ROBIN
+      health_checks:
+        - timeout: 5s
+          interval: 10s
+          unhealthy_threshold: 2
+          healthy_threshold: 2
+          http_health_check:
+            path: /ping
+            expected_statuses:
+              start: 200
+              end: 399
+      common_lb_config:
+        locality_weighted_lb_config:
+      load_assignment:
+        cluster_name: demo_server
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: 127.0.0.1
+                      port_value: 8080 # healthy endpoint
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: 127.0.0.1
+                      port_value: 18080 # unhealthy endpoint
+            priority: 0
+            locality:
+              region: us-west-2
+              zone: us-west-2a
+              sub_zone: us-west-2a
+            load_balancing_weight: 1
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: 127.0.0.1
+                      port_value: 8081
+            priority: 1
+            locality:
+              region: us-west-2
+              zone: us-west-2b
+              sub_zone: us-west-2b
+            load_balancing_weight: 1
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: 127.0.0.1
+                      port_value: 8082
+            priority: 2
+            locality:
+              region: us-west-2
+              zone: us-west-2c
+              sub_zone: us-west-2c
+            load_balancing_weight: 1
+
+  listeners:
+    - address:
+        socket_address: { address: 0.0.0.0, port_value: 10000 }
+      filter_chains:
+        - filters:
+            - name: envoy.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: ingress_http
+                route_config:
+                  name: local_route
+                  virtual_hosts:
+                    - name: local_service
+                      domains: ["*"]
+                      routes:
+                        - match:
+                            prefix: "/"
+                          route:
+                            host_rewrite_literal: az-routing-test
+                            cluster: demo_server
+                http_filters:
+                  - name: envoy.filters.http.router
