@@ -59,7 +59,7 @@ AZ3 OK traffic:        0
 #### Scenario 3: 100% healthy endpoints in AZ1
 Start envoy:
 ```
-envoy -c envoy-config-az1-50%healthy.yaml
+envoy -c envoy-config-az1-100%healthy.yaml
 ```
 then make 100 Http calls:
 ```
