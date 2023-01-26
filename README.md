@@ -74,4 +74,23 @@ AZ2 OK traffic:        0
 AZ3 OK traffic:        0
 ```
 
+#### Scenario 4: 50% healthy endpoints in AZ1, with over_provisioning_factor = 200
+Start envoy:
+```
+envoy -c envoy-config-az1-50%healthy-over_provisioning_factor_200.yaml
+```
+then make 100 Http calls:
+```
+./make_http_calls.sh
+```
+The result shows 100% requests went to AZ1, because over provisioning factor taking effect
+```
+vanggie@88665a3efcfc AZRoutingPoc % ./make_http_calls.sh
+Made 100 Http calls
+AZ1 OK traffic:      100
+AZ2 OK traffic:        0
+AZ3 OK traffic:        0
+```
+To always ensure traffic go to AZ1 if AZ1 has healthy hosts,
+over_provisioning_factor = 100 * (number of endpoints in AZ1)
 
